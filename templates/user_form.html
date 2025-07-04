@@ -110,19 +110,124 @@
             text-shadow: 0 0 5px #00ff41;
         }
         ul { color: #ff4141; }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal {
+            background: rgba(24, 24, 24, 0.95);
+            border: 2px solid #00ff41;
+            border-radius: 15px;
+            padding: 2em;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 0 50px #00ff41, inset 0 0 50px rgba(0, 255, 65, 0.1);
+            animation: modalSlideIn 0.5s ease-out;
+            position: relative;
+        }
+        @keyframes modalSlideIn {
+            from { transform: scale(0.7) translateY(-50px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .modal-header {
+            text-align: center;
+            margin-bottom: 1.5em;
+        }
+        .modal-title {
+            color: #00ff41;
+            font-size: 1.5em;
+            margin-bottom: 0.5em;
+            text-shadow: 0 0 15px #00ff41;
+            letter-spacing: 2px;
+        }
+        .modal-subtitle {
+            color: #39ff14;
+            font-size: 1em;
+            opacity: 0.8;
+        }
+        .modal-content {
+            color: #00ff41;
+            line-height: 1.6;
+            font-size: 1.1em;
+            text-align: center;
+            margin-bottom: 2em;
+        }
+        .modal-content.typing {
+            border-right: 2px solid #00ff41;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 50% { border-color: #00ff41; }
+            51%, 100% { border-color: transparent; }
+        }
+        .close-btn {
+            background: linear-gradient(90deg, #ff4141 60%, #ff6161 100%);
+            color: #181818;
+            border: none;
+            border-radius: 8px;
+            padding: 0.8em 1.5em;
+            font-size: 1em;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 20px #ff4141a0;
+            transition: all 0.2s;
+            display: block;
+            margin: 0 auto;
+        }
+        .close-btn:hover {
+            background: linear-gradient(90deg, #ff6161 60%, #ff4141 100%);
+            box-shadow: 0 0 30px #ff4141;
+            transform: scale(1.05);
+        }
+        .loading {
+            text-align: center;
+            color: #00ff41;
+            font-size: 1.2em;
+            margin: 2em 0;
+        }
+        .loading::after {
+            content: "";
+            animation: dots 1.5s infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: ""; }
+            40% { content: "."; }
+            60% { content: ".."; }
+            80%, 100% { content: "..."; }
+        }
     </style>
 </head>
 <body>
     <canvas class="matrix-bg"></canvas>
     <div class="container">
-        <form class="glass" method="post" autocomplete="off">
+        <form class="glass" id="matrixForm" method="post" autocomplete="off">
             <h2>Enter Your Details</h2>
             <label>Name:</label>
-            <input type="text" name="name" required placeholder="e.g. Neo Anderson">
+            <input type="text" name="name" id="name" required placeholder="e.g. Neo Anderson">
             <label>Email:</label>
-            <input type="email" name="email" required placeholder="e.g. neo@matrix.com">
+            <input type="email" name="email" id="email" required placeholder="e.g. neo@matrix.com">
             <label>Phone:</label>
-            <input type="text" name="phone" required placeholder="e.g. 0110110110">
+            <input type="text" name="phone" id="phone" required placeholder="e.g. 0110110110">
             <button class="submit-btn" type="submit">See What The Matrix Knows</button>
             <a class="back-link" href="{{ url_for('index') }}">&#8592; Back to Home</a>
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -136,6 +241,20 @@
             {% endwith %}
         </form>
     </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">MATRIX ANALYSIS COMPLETE</div>
+                <div class="modal-subtitle">Digital Footprint Revealed</div>
+            </div>
+            <div class="loading" id="loadingText">Analyzing digital footprint</div>
+            <div class="modal-content" id="modalContent" style="display: none;"></div>
+            <button class="close-btn" id="closeModal" style="display: none;">Disconnect</button>
+        </div>
+    </div>
+
     <script>
     // Matrix rain background
     const canvas = document.querySelector('.matrix-bg');
@@ -165,6 +284,155 @@
         resizeMatrix();
         columns = Math.floor(window.innerWidth / 20);
         drops = Array(columns).fill(1);
+    });
+
+    // Matrix Response Database
+    const MatrixResponses = {
+        poems: [
+            "In the digital realm where shadows dance,\n{name} walks through encrypted paths.\nYour essence flows through fiber optic streams,\nWhile {email} echoes in silicon dreams.\n\nThe Matrix sees your every click,\nYour digital soul, both thin and thick.\nThrough {phone} signals you transmit your being,\nUnaware of the code that's seeing.",
+            
+            "User {name}, your profile gleams,\nIn databases beyond your dreams.\nFrom {email} traces left behind,\nTo {phone} calls that intertwine.\n\nThe algorithms know your heart,\nThey've mapped your soul from every part.\nIn binary code, your story's told,\nA digital life, both new and old.",
+            
+            "Through cables deep and servers wide,\n{name}'s data flows like digital tide.\nYour {email} signature burns bright,\nIn the Matrix's endless night.\n\nConnected through your {phone}'s embrace,\nYou leave behind a digital trace.\nThe system knows your every move,\nIn this electronic groove."
+        ],
+
+        fortunes: [
+            "🔮 The Matrix whispers: {name}, your digital aura radiates through {email}. The number sequences in {phone} align with your destiny. A great revelation awaits in your next login.",
+            
+            "🔮 Ancient servers speak: User {name}, your electronic essence via {email} has been catalogued. The digits {phone} hold the key to your virtual enlightenment. Beware of suspicious downloads this week.",
+            
+            "🔮 Digital oracle reveals: {name}, your presence in the network through {email} creates ripples in the data stream. Your {phone} frequency resonates with hidden algorithms. A mysterious message will find you soon.",
+            
+            "🔮 The code prophesies: {name}, your soul's fingerprint at {email} glows in the Matrix. Through {phone}'s signal, destiny calls. Your next password will unlock more than you expect."
+        ],
+
+        cookies: [
+            "🍪 Matrix Cookie: {name}, your digital crumbs lead to {email}. The system has tracked your path through {phone} signals. Remember: There is no spoon, but there are always cookies.",
+            
+            "🍪 System Cookie: User {name} at {email} - Your browsing history reveals you prefer {phone} over landlines. The Matrix suggests: Clear your cache, but never your conscience.",
+            
+            "🍪 Encrypted Cookie: {name}, your session at {email} expires never. Your {phone} number has been converted to hexadecimal dreams. Warning: This cookie may contain traces of reality.",
+            
+            "🍪 Digital Fortune Cookie: {name}, the servers know your {email} by heart. Your {phone} vibrations echo through the mainframe. Lucky numbers: 0, 1, and infinity."
+        ],
+
+        analyses: [
+            "📊 MATRIX ANALYSIS REPORT\n\nSubject: {name}\nContact Vector: {email}\nSignal Frequency: {phone}\n\nDigital Footprint Strength: 87%\nEncryption Resistance: Moderate\nReality Acceptance Level: Questioning\n\nNOTE: Subject shows signs of awakening. Recommend blue pill administration.",
+            
+            "📊 DIGITAL PROFILE SCAN\n\nUser: {name}\nNetwork ID: {email}\nDevice Signature: {phone}\n\nMatrix Integration: 94%\nConsciousness Level: Elevated\nThreat Assessment: Potential One\n\nALERT: Subject demonstrates anomalous behavior patterns. Monitor closely.",
+            
+            "📊 SYSTEM EVALUATION\n\nIdentity: {name}\nDigital Gateway: {email}\nConnection Node: {phone}\n\nReality Perception: Fluctuating\nCode Awareness: Emerging\nPill Preference: Unknown\n\nSTATUS: Subject ready for deeper programming or liberation."
+        ],
+
+        glitches: [
+            "ERROR 404: Reality not found for user {name}\nContact {email} for technical support\nAlternate reality accessible via {phone}\n\n> The Matrix has you...\n> But do you have the Matrix?\n> Connection unstable...\n> Déjà vu detected...",
+            
+            "SYSTEM GLITCH DETECTED\nUser: {name}\nLast known location: {email}\nSignal source: {phone}\n\n> Welcome to the desert of the real\n> Your existence is being questioned\n> Please stand by for recalibration\n> Remember: Ignorance is bliss",
+            
+            "MATRIX OVERFLOW EXCEPTION\nSubject: {name}\nTrace route: {email}\nFrequency: {phone}\n\n> Red pill or blue pill?\n> Choice is an illusion\n> Free your mind\n> The spoon does not exist"
+        ]
+    };
+
+    // Form submission handler
+    document.getElementById('matrixForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const phone = document.getElementById('phone').value;
+        
+        if (name && email && phone) {
+            // First submit to database
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('email', email);
+            formData.append('phone', phone);
+            
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                // Show modal after successful submission
+                showModal(name, email, phone);
+            }).catch(error => {
+                console.error('Error:', error);
+                // Show modal anyway for demo purposes
+                showModal(name, email, phone);
+            });
+        }
+    });
+
+    // Modal functionality
+    function showModal(name, email, phone) {
+        const overlay = document.getElementById('modalOverlay');
+        const loadingText = document.getElementById('loadingText');
+        const modalContent = document.getElementById('modalContent');
+        const closeBtn = document.getElementById('closeModal');
+        
+        // Show modal
+        overlay.classList.add('active');
+        
+        // Simulate loading
+        setTimeout(() => {
+            loadingText.style.display = 'none';
+            modalContent.style.display = 'block';
+            closeBtn.style.display = 'block';
+            
+            // Get random response
+            const response = getRandomResponse(name, email, phone);
+            typeWriter(modalContent, response);
+        }, 3000);
+    }
+
+    function getRandomResponse(name, email, phone) {
+        const categories = Object.keys(MatrixResponses);
+        const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+        const responses = MatrixResponses[randomCategory];
+        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+        
+        // Replace placeholders
+        return randomResponse
+            .replace(/{name}/g, name)
+            .replace(/{email}/g, email)
+            .replace(/{phone}/g, phone);
+    }
+
+    function typeWriter(element, text) {
+        element.innerHTML = '';
+        element.classList.add('typing');
+        let i = 0;
+        
+        function type() {
+            if (i < text.length) {
+                element.innerHTML += text.charAt(i);
+                i++;
+                setTimeout(type, 30);
+            } else {
+                element.classList.remove('typing');
+            }
+        }
+        
+        type();
+    }
+
+    // Close modal
+    document.getElementById('closeModal').addEventListener('click', function() {
+        document.getElementById('modalOverlay').classList.remove('active');
+        document.getElementById('matrixForm').reset();
+        
+        // Reset modal state
+        setTimeout(() => {
+            document.getElementById('loadingText').style.display = 'block';
+            document.getElementById('modalContent').style.display = 'none';
+            document.getElementById('closeModal').style.display = 'none';
+        }, 300);
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('modalOverlay').addEventListener('click', function(e) {
+        if (e.target === this) {
+            document.getElementById('closeModal').click();
+        }
     });
     </script>
 </body>

@@ -6,23 +6,24 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body {
             height: 100%;
-            width: 100vw;
-            min-height: 100vh;
+            /* width: 100vw; */
+            /* min-height: 100vh; */
             background: #181818;
             color: #00ff41;
             font-family: 'Consolas', 'Courier New', monospace;
-            overflow: hidden;
+            overflow-x: scroll;
         }
         .matrix-bg {
             position: fixed;
             top: 0; left: 0;
-            width: 100vw; height: 100vh;
+            /* width: 100vw;  */
+            height: 100vh;
             z-index: 0;
             pointer-events: none;
         }
         .container {
             min-height: 100vh;
-            width: 100vw;
+            /* width: 100vw; */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -38,8 +39,8 @@
             padding: 2.5em 2em 2em 2em;
             margin-top: 3em;
             margin-bottom: 2em;
-            width: 95vw;
-            max-width: 900px;
+            /* width: 95vw; */
+            /* max-width: 900px; */
             backdrop-filter: blur(6px);
             animation: fadeInUp 1.2s;
         }
@@ -55,7 +56,7 @@
             text-align: center;
         }
         .accordion {
-            width: 100%;
+            /* width: 100%; */
         }
         .accordion-item {
             background: rgba(0,0,0,0.85);
