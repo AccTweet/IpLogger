@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome | Matrix Logger</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            height: 100%;
+            width: 100vw;
+            min-height: 100vh;
+            background: #181818;
+            color: #00ff41;
+            font-family: 'Consolas', 'Courier New', monospace;
+            overflow: hidden;
+        }
+        .matrix-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .container {
+            min-height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+        .glass {
+            background: rgba(24, 24, 24, 0.7);
+            border: 1.5px solid #00ff41;
+            box-shadow: 0 0 40px #00ff41a0;
+            border-radius: 18px;
+            padding: 3em 2.5em 2em 2.5em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 420px;
+            margin: 2em;
+            backdrop-filter: blur(6px);
+            animation: fadeInUp 1.2s;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        h1 {
+            font-size: 2.7em;
+            color: #00ff41;
+            margin-bottom: 0.3em;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px #00ff41, 0 0 20px #003300;
+            animation: flicker 2s infinite alternate;
+        }
+        @keyframes flicker {
+            0% { opacity: 1; text-shadow: 0 0 10px #00ff41, 0 0 20px #003300; }
+            100% { opacity: 0.85; text-shadow: 0 0 20px #00ff41, 0 0 40px #003300; }
+        }
+        .subtitle {
+            color: #39ff14;
+            font-size: 1.15em;
+            margin-bottom: 1.5em;
+            text-align: center;
+            max-width: 350px;
+            text-shadow: 0 0 5px #00ff41;
+        }
+        .cta-btn {
+            background: linear-gradient(90deg, #00ff41 60%, #39ff14 100%);
+            color: #181818;
+            border: none;
+            border-radius: 8px;
+            padding: 1em 2.2em;
+            font-size: 1.2em;
+            font-family: inherit;
+            font-weight: bold;
+            margin-top: 1.5em;
+            cursor: pointer;
+            box-shadow: 0 0 20px #00ff41a0;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.1s;
+        }
+        .cta-btn:hover {
+            background: linear-gradient(90deg, #39ff14 60%, #00ff41 100%);
+            color: #000;
+            box-shadow: 0 0 40px #39ff14;
+            transform: scale(1.05);
+        }
+        .demo-note {
+            color: #ff4141;
+            font-size: 0.95em;
+            margin-top: 1em;
+            text-align: center;
+            opacity: 0.8;
+        }
+        footer {
+            margin-top: 2em;
+            color: #39ff14;
+            font-size: 0.9em;
+            text-align: center;
+            width: 100%;
+            position: absolute;
+            bottom: 1em;
+            left: 0;
+            z-index: 2;
+        }
+    </style>
+</head>
+<body>
+    <canvas class="matrix-bg"></canvas>
+    <div class="container">
+        <div class="glass">
+            <h1>Matrix Logger</h1>
+            <div class="subtitle">
+                <b>Discover your digital footprint!</b><br>
+                Enter your details and see what the Matrix knows about you.<br>
+            </div>
+            <a href="{{ url_for('user_form') }}">
+                <button class="cta-btn">Reveal My Details</button>
+            </a>
+            <div class="demo-note">(For demonstration purposes only)</div>
+        </div>
+        <footer>
+            &copy; {{ 2025 }} Matrix Logger. For authorized use only.
+        </footer>
+    </div>
+    <script>
+    // Matrix rain background
+    const canvas = document.querySelector('.matrix-bg');
+    const ctx = canvas.getContext('2d');
+    function resizeMatrix() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeMatrix();
+    let columns = Math.floor(window.innerWidth / 20);
+    let drops = Array(columns).fill(1);
+
+    function drawMatrix() {
+        ctx.fillStyle = "rgba(24,24,24,0.1)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.font = "18px Consolas, monospace";
+        ctx.fillStyle = "#00ff41";
+        for(let i = 0; i < drops.length; i++) {
+            let text = String.fromCharCode(0x30A0 + Math.random() * 96);
+            ctx.fillText(text, i * 20, drops[i] * 20);
+            if(drops[i] * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+        }
+    }
+    setInterval(drawMatrix, 50);
+    window.addEventListener('resize', () => {
+        resizeMatrix();
+        columns = Math.floor(window.innerWidth / 20);
+        drops = Array(columns).fill(1);
+    });
+    </script>
+</body>
+</html>

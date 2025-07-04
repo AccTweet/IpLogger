@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Enter Your Details | Matrix Logger</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            height: 100%;
+            width: 100vw;
+            min-height: 100vh;
+            background: #181818;
+            color: #00ff41;
+            font-family: 'Consolas', 'Courier New', monospace;
+            overflow: hidden;
+        }
+        .matrix-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .container {
+            min-height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+        .glass {
+            background: rgba(24, 24, 24, 0.7);
+            border: 1.5px solid #00ff41;
+            box-shadow: 0 0 40px #00ff41a0;
+            border-radius: 18px;
+            padding: 2.5em 2em 2em 2em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 420px;
+            margin: 2em;
+            backdrop-filter: blur(6px);
+            animation: fadeInUp 1.2s;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        h2 {
+            color: #00ff41;
+            margin-bottom: 1em;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px #00ff41, 0 0 20px #003300;
+        }
+        label {
+            color: #39ff14;
+            font-size: 1.05em;
+            margin-top: 1em;
+            margin-bottom: 0.2em;
+            align-self: flex-start;
+        }
+        input {
+            background: #222;
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            border-radius: 6px;
+            padding: 0.7em;
+            margin-bottom: 0.7em;
+            font-family: inherit;
+            font-size: 1em;
+            width: 100%;
+            transition: border 0.2s, box-shadow 0.2s;
+        }
+        input:focus {
+            border: 1.5px solid #39ff14;
+            outline: none;
+            box-shadow: 0 0 8px #00ff41;
+        }
+        .submit-btn {
+            background: linear-gradient(90deg, #00ff41 60%, #39ff14 100%);
+            color: #181818;
+            border: none;
+            border-radius: 8px;
+            padding: 1em 2em;
+            font-size: 1.1em;
+            font-family: inherit;
+            font-weight: bold;
+            margin-top: 1em;
+            cursor: pointer;
+            box-shadow: 0 0 20px #00ff41a0;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.1s;
+        }
+        .submit-btn:hover {
+            background: linear-gradient(90deg, #39ff14 60%, #00ff41 100%);
+            color: #000;
+            box-shadow: 0 0 40px #39ff14;
+            transform: scale(1.05);
+        }
+        .back-link {
+            color: #00ff41;
+            text-decoration: none;
+            margin-top: 1.5em;
+            font-size: 1em;
+            transition: color 0.2s;
+        }
+        .back-link:hover {
+            color: #39ff14;
+            text-shadow: 0 0 5px #00ff41;
+        }
+        ul { color: #ff4141; }
+    </style>
+</head>
+<body>
+    <canvas class="matrix-bg"></canvas>
+    <div class="container">
+        <form class="glass" method="post" autocomplete="off">
+            <h2>Enter Your Details</h2>
+            <label>Name:</label>
+            <input type="text" name="name" required placeholder="e.g. Neo Anderson">
+            <label>Email:</label>
+            <input type="email" name="email" required placeholder="e.g. neo@matrix.com">
+            <label>Phone:</label>
+            <input type="text" name="phone" required placeholder="e.g. 0110110110">
+            <button class="submit-btn" type="submit">See What The Matrix Knows</button>
+            <a class="back-link" href="{{ url_for('index') }}">&#8592; Back to Home</a>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <ul>
+                {% for category, message in messages %}
+                  <li>{{ message }}</li>
+                {% endfor %}
+                </ul>
+              {% endif %}
+            {% endwith %}
+        </form>
+    </div>
+    <script>
+    // Matrix rain background
+    const canvas = document.querySelector('.matrix-bg');
+    const ctx = canvas.getContext('2d');
+    function resizeMatrix() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeMatrix();
+    let columns = Math.floor(window.innerWidth / 20);
+    let drops = Array(columns).fill(1);
+
+    function drawMatrix() {
+        ctx.fillStyle = "rgba(24,24,24,0.1)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.font = "18px Consolas, monospace";
+        ctx.fillStyle = "#00ff41";
+        for(let i = 0; i < drops.length; i++) {
+            let text = String.fromCharCode(0x30A0 + Math.random() * 96);
+            ctx.fillText(text, i * 20, drops[i] * 20);
+            if(drops[i] * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
+        }
+    }
+    setInterval(drawMatrix, 50);
+    window.addEventListener('resize', () => {
+        resizeMatrix();
+        columns = Math.floor(window.innerWidth / 20);
+        drops = Array(columns).fill(1);
+    });
+    </script>
+</body>
+</html>

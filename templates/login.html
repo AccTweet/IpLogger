@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Login</title>
+    <style>
+        body {
+            background: #181818;
+            color: #00ff41;
+            font-family: 'Consolas', 'Courier New', monospace;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        h2 { color: #00ff41; }
+        label { color: #39ff14; }
+        input, button {
+            background: #222;
+            color: #00ff41;
+            border: 1px solid #00ff41;
+            border-radius: 5px;
+            padding: 0.5em;
+            margin: 0.3em 0;
+            font-family: inherit;
+        }
+        button {
+            background: #00ff41;
+            color: #181818;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        button:hover {
+            background: #39ff14;
+            color: #000;
+        }
+        a {
+            color: #00ff41;
+            text-decoration: none;
+        }
+        a:hover {
+            color: #39ff14;
+            text-shadow: 0 0 5px #00ff41;
+        }
+        .container {
+            max-width: 400px;
+            margin: 5em auto;
+            background: rgba(0,0,0,0.8);
+            padding: 2em 2.5em;
+            border-radius: 10px;
+            box-shadow: 0 0 20px #00ff4160;
+        }
+        ul { color: #ff4141; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Admin Login</h2>
+        <form method="post">
+            <label>Username:</label><br>
+            <input type="text" name="username" required><br>
+            <label>Password:</label><br>
+            <input type="password" name="password" required><br><br>
+            <button type="submit">Login</button>
+        </form>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul>
+            {% for category, message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        <br>
+        <a href="{{ url_for('index') }}">Home</a>
+    </div>
+</body>
+</html>

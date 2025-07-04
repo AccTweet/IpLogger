@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard | Matrix Logger</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            height: 100%;
+            width: 100vw;
+            min-height: 100vh;
+            background: #181818;
+            color: #00ff41;
+            font-family: 'Consolas', 'Courier New', monospace;
+            overflow: hidden;
+        }
+        .matrix-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .container {
+            min-height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+            z-index: 1;
+        }
+        .glass {
+            background: rgba(24, 24, 24, 0.7);
+            border: 1.5px solid #00ff41;
+            box-shadow: 0 0 40px #00ff41a0;
+            border-radius: 18px;
+            padding: 2.5em 2em 2em 2em;
+            margin-top: 3em;
+            margin-bottom: 2em;
+            width: 95vw;
+            max-width: 900px;
+            backdrop-filter: blur(6px);
+            animation: fadeInUp 1.2s;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        h2 {
+            color: #00ff41;
+            margin-bottom: 1em;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px #00ff41, 0 0 20px #003300;
+            text-align: center;
+        }
+        .accordion {
+            width: 100%;
+        }
+        .accordion-item {
+            background: rgba(0,0,0,0.85);
+            margin-bottom: 1em;
+            border-radius: 8px;
+            box-shadow: 0 0 10px #00ff4160;
+            overflow: hidden;
+        }
+        .accordion-header {
+            cursor: pointer;
+            padding: 1.1em 1.5em;
+            background: #222;
+            color: #39ff14;
+            font-weight: bold;
+            font-size: 1.1em;
+            border: none;
+            outline: none;
+            width: 100%;
+            text-align: left;
+            transition: background 0.2s;
+            letter-spacing: 1px;
+        }
+        .accordion-header:hover {
+            background: #003300;
+        }
+        .accordion-content {
+            display: none;
+            padding: 1em 2em 1.5em 2em;
+            background: #181818;
+            color: #00ff41;
+            animation: fadeIn 0.3s;
+        }
+        .accordion-item.active .accordion-content {
+            display: block;
+        }
+        .accordion-item.active .accordion-header {
+            background: #003300;
+        }
+        .field-label {
+            color: #39ff14;
+            font-weight: bold;
+            margin-right: 0.5em;
+        }
+        .delete-btn {
+            background: #ff4141;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 0.5em 1.2em;
+            margin-top: 1.2em;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 0 10px #ff414180;
+        }
+        .delete-btn:hover {
+            background: #ff0000;
+            box-shadow: 0 0 20px #ff4141;
+        }
+        a {
+            color: #00ff41;
+            text-decoration: none;
+            margin-right: 1em;
+        }
+        a:hover {
+            color: #39ff14;
+            text-shadow: 0 0 5px #00ff41;
+        }
+        .logout-link {
+            align-self: flex-end;
+            margin: 1.5em 2em 0 0;
+            color: #ff4141;
+            font-weight: bold;
+            font-size: 1.1em;
+            text-shadow: 0 0 8px #ff4141a0;
+        }
+        .logout-link:hover {
+            color: #fff;
+            text-shadow: 0 0 15px #ff4141;
+        }
+        .flash {
+            color: #ff4141;
+            margin-bottom: 1em;
+            text-align: center;
+        }
+        footer {
+            margin-top: 2em;
+            color: #39ff14;
+            font-size: 0.9em;
+            text-align: center;
+            width: 100%;
+            position: absolute;
+            bottom: 1em;
+            left: 0;
+            z-index: 2;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <canvas class="matrix-bg"></canvas>
+    <div class="container">
+        <a class="logout-link" href="{{ url_for('logout') }}">Logout</a>
+        <div class="glass">
+            <h2>Logged User Data</h2>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                <div class="flash">
+                {% for category, message in messages %}
+                  <div>{{ message }}</div>
+                {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+            <div class="accordion" id="accordion">
+                {% for log in logs %}
+                <div class="accordion-item">
+                    <button class="accordion-header">
+                        #{{ log[0] }} | {{ log[1] or "No Name" }} | {{ log[4] or log[5] or "No IP" }} | {{ log[11] }}
+                    </button>
+                    <div class="accordion-content">
+                        <div><span class="field-label">Name:</span> {{ log[1] }}</div>
+                        <div><span class="field-label">Email:</span> {{ log[2] }}</div>
+                        <div><span class="field-label">Phone:</span> {{ log[3] }}</div>
+                        <div><span class="field-label">IP:</span> {{ log[4] }}</div>
+                        <div><span class="field-label">IPv6:</span> {{ log[5] }}</div>
+                        <div><span class="field-label">User Agent:</span> {{ log[6] }}</div>
+                        <div><span class="field-label">OS Type:</span> {{ log[7] }}</div>
+                        <div><span class="field-label">OS Version:</span> {{ log[8] }}</div>
+                        <div><span class="field-label">Browser:</span> {{ log[9] }}</div>
+                        <div><span class="field-label">Referrer:</span> {{ log[10] }}</div>
+                        <div><span class="field-label">Timestamp:</span> {{ log[11] }}</div>
+                        <form method="post" action="{{ url_for('delete_log', log_id=log[0]) }}" onsubmit="return confirm('Delete this log?');">
+                            <button class="delete-btn" type="submit">Delete</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <footer>
+            &copy; {{ 2025 }} Matrix Logger. For authorized use only.
+        </footer>
+    </div>
+    <script>
+        // Matrix rain background
+        const canvas = document.querySelector('.matrix-bg');
+        const ctx = canvas.getContext('2d');
+        function resizeMatrix() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeMatrix();
+        let columns = Math.floor(window.innerWidth / 20);
+        let drops = Array(columns).fill(1);
+
+        function drawMatrix() {
+            ctx.fillStyle = "rgba(24,24,24,0.1)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.font = "18px Consolas, monospace";
+            ctx.fillStyle = "#00ff41";
+            for(let i = 0; i < drops.length; i++) {
+                let text = String.fromCharCode(0x30A0 + Math.random() * 96);
+                ctx.fillText(text, i * 20, drops[i] * 20);
+                if(drops[i] * 20 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 50);
+        window.addEventListener('resize', () => {
+            resizeMatrix();
+            columns = Math.floor(window.innerWidth / 20);
+            drops = Array(columns).fill(1);
+        });
+
+        // Accordion logic
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const item = this.parentElement;
+                item.classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+</html>
